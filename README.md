@@ -31,6 +31,7 @@ Fill in the line 8 - 11 of migrator/migrations/2_deploy.js for the addresses for
 ```
 cd migrator
 npm i
+truffle migrate
 ```
 
 
