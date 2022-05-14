@@ -187,7 +187,7 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "pragma solidity >=0.5.0;\n\ninterface IUniswapV2Factory {\n    event PairCreated(address indexed token0, address indexed token1, address pair, uint);\n\n    function feeTo() external view returns (address);\n    function feeToSetter() external view returns (address);\n\n    function getPair(address tokenA, address tokenB) external view returns (address pair);\n    function allPairs(uint) external view returns (address pair);\n    function allPairsLength() external view returns (uint);\n\n    function createPair(address tokenA, address tokenB) external returns (address pair);\n\n    function setFeeTo(address) external;\n    function setFeeToSetter(address) external;\n}\n",
-  "sourcePath": "/home/maha/Desktop/Dev/forkUniswap/core/contracts/interfaces/IUniswapV2Factory.sol",
+  "sourcePath": "/home/dev/Desktop/Sol/eatTheBlocks/ForkUniswapv2/core/contracts/interfaces/IUniswapV2Factory.sol",
   "ast": {
     "absolutePath": "project:/contracts/interfaces/IUniswapV2Factory.sol",
     "exportedSymbols": {
@@ -1774,8 +1774,8 @@
     "version": "0.5.16+commit.9c3226ce.Emscripten.clang"
   },
   "networks": {},
-  "schemaVersion": "3.4.3",
-  "updatedAt": "2022-05-12T05:07:15.576Z",
+  "schemaVersion": "3.4.5",
+  "updatedAt": "2022-05-14T07:31:22.716Z",
   "devdoc": {
     "methods": {}
   },

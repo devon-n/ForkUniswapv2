@@ -199,7 +199,7 @@
   "sourceMap": "102:1764:9:-;;;406:84;8:9:-1;5:2;;;30:1;27;20:12;5:2;406:84:9;;;;;;;;;;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;406:84:9;;;;;;;;;;;;;;;;471:12;457:11;;:26;;;;;;;;;;;;;;;;;;406:84;102:1764;;;;;;",
   "deployedSourceMap": "102:1764:9:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;102:1764:9;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;155:20;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;181:26;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;282:25;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;282:25:9;;;;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;496:94;;;:::i;:::-;;;;;;;;;;;;;;;;;;;1698:166;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;1698:166:9;;;;;;;;;;;;;;;;;;;:::i;:::-;;596:948;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;596:948:9;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;214:62;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;214:62:9;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;1550:142;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;1550:142:9;;;;;;;;;;;;;;;;;;;:::i;:::-;;155:20;;;;;;;;;;;;;:::o;181:26::-;;;;;;;;;;;;;:::o;282:25::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::o;496:94::-;545:4;568:8;:15;;;;561:22;;496:94;:::o;1698:166::-;1785:11;;;;;;;;;;;1771:25;;:10;:25;;;1763:58;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1845:12;1831:11;;:26;;;;;;;;;;;;;;;;;;1698:166;:::o;596:948::-;666:12;708:6;698:16;;:6;:16;;;;690:59;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;760:14;776;803:6;794:15;;:6;:15;;;:53;;832:6;840;794:53;;;813:6;821;794:53;759:88;;;;883:1;865:20;;:6;:20;;;;857:56;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;966:1;931:37;;:7;:15;939:6;931:15;;;;;;;;;;;;;;;:23;947:6;931:23;;;;;;;;;;;;;;;;;;;;;;;;;:37;;;923:72;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1035:21;1059:32;;;;;;;;:::i;:::-;41:4:-1;34:5;30:16;25:3;21:26;14:5;7:41;87:2;83:7;78:2;73:3;69:12;65:26;61:2;54:38;1059:32:9;1035:56;;1101:12;1143:6;1151;1126:32;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;49:4:-1;39:7;30;26:21;22:32;13:7;6:49;1126:32:9;;;1116:43;;;;;;1101:58;;1247:4;1236:8;1230:15;1225:2;1215:8;1211:17;1208:1;1200:52;1192:60;;1286:4;1271:31;;;1303:6;1311;1271:47;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;1271:47:9;;;;8:9:-1;5:2;;;45:16;42:1;39;24:38;77:16;74:1;67:27;5:2;1271:47:9;;;;1354:4;1328:7;:15;1336:6;1328:15;;;;;;;;;;;;;;;:23;1344:6;1328:23;;;;;;;;;;;;;;;;:30;;;;;;;;;;;;;;;;;;1394:4;1368:7;:15;1376:6;1368:15;;;;;;;;;;;;;;;:23;1384:6;1368:23;;;;;;;;;;;;;;;;:30;;;;;;;;;;;;;;;;;;1453:8;1467:4;1453:19;;39:1:-1;33:3;27:10;23:18;57:10;52:3;45:23;79:10;72:17;;0:93;1453:19:9;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1507:6;1487:50;;1499:6;1487:50;;;1515:4;1521:8;:15;;;;1487:50;;;;;;;;;;;;;;;;;;;;;;;;;;;;596:948;;;;;;;;:::o;214:62::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::o;1550:142::-;1625:11;;;;;;;;;;;1611:25;;:10;:25;;;1603:58;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1679:6;1671:5;;:14;;;;;;;;;;;;;;;;;;1550:142;:::o;102:1764::-;;;;;;;;:::o",
   "source": "pragma solidity =0.5.16;\n\nimport './interfaces/IUniswapV2Factory.sol';\nimport './UniswapV2Pair.sol';\n\ncontract UniswapV2Factory is IUniswapV2Factory {\n    address public feeTo;\n    address public feeToSetter;\n\n    mapping(address => mapping(address => address)) public getPair;\n    address[] public allPairs;\n\n    event PairCreated(address indexed token0, address indexed token1, address pair, uint);\n\n    constructor(address _feeToSetter) public {\n        feeToSetter = _feeToSetter;\n    }\n\n    function allPairsLength() external view returns (uint) {\n        return allPairs.length;\n    }\n\n    function createPair(address tokenA, address tokenB) external returns (address pair) {\n        require(tokenA != tokenB, 'UniswapV2: IDENTICAL_ADDRESSES');\n        (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);\n        require(token0 != address(0), 'UniswapV2: ZERO_ADDRESS');\n        require(getPair[token0][token1] == address(0), 'UniswapV2: PAIR_EXISTS'); // single check is sufficient\n        bytes memory bytecode = type(UniswapV2Pair).creationCode;\n        bytes32 salt = keccak256(abi.encodePacked(token0, token1));\n        assembly {\n            pair := create2(0, add(bytecode, 32), mload(bytecode), salt)\n        }\n        IUniswapV2Pair(pair).initialize(token0, token1);\n        getPair[token0][token1] = pair;\n        getPair[token1][token0] = pair; // populate mapping in the reverse direction\n        allPairs.push(pair);\n        emit PairCreated(token0, token1, pair, allPairs.length);\n    }\n\n    function setFeeTo(address _feeTo) external {\n        require(msg.sender == feeToSetter, 'UniswapV2: FORBIDDEN');\n        feeTo = _feeTo;\n    }\n\n    function setFeeToSetter(address _feeToSetter) external {\n        require(msg.sender == feeToSetter, 'UniswapV2: FORBIDDEN');\n        feeToSetter = _feeToSetter;\n    }\n}\n",
-  "sourcePath": "/home/maha/Desktop/Dev/forkUniswap/core/contracts/UniswapV2Factory.sol",
+  "sourcePath": "/home/dev/Desktop/Sol/eatTheBlocks/ForkUniswapv2/core/contracts/UniswapV2Factory.sol",
   "ast": {
     "absolutePath": "project:/contracts/UniswapV2Factory.sol",
     "exportedSymbols": {
@@ -5744,10 +5744,86 @@
       "links": {},
       "address": "0x7dB87729c99Bcd6A4C2F60fF6AceDB9d16E93302",
       "transactionHash": "0xfc20691dc09b8182e301a0405f5327aa97aeae3f7b669dbfcd3a1ab1909ff1f8"
+    },
+    "1652513447744": {
+      "events": {
+        "0x0d3648bd0f6ba80134a33ba9275ac585d9d315f0ad8355cddefde31afa28d0e9": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "address",
+              "name": "token0",
+              "type": "address"
+            },
+            {
+              "indexed": true,
+              "internalType": "address",
+              "name": "token1",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "internalType": "address",
+              "name": "pair",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ],
+          "name": "PairCreated",
+          "type": "event"
+        }
+      },
+      "links": {},
+      "address": "0x432B58bc355476a3e4A50aB88A0FB0926b27E466",
+      "transactionHash": "0x0f8d4745dd1c9cc0aa57f1d8b5f9dd75455af90a86de9e86bc6fd5ee4bd381c7"
+    },
+    "1652517023549": {
+      "events": {
+        "0x0d3648bd0f6ba80134a33ba9275ac585d9d315f0ad8355cddefde31afa28d0e9": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "address",
+              "name": "token0",
+              "type": "address"
+            },
+            {
+              "indexed": true,
+              "internalType": "address",
+              "name": "token1",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "internalType": "address",
+              "name": "pair",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ],
+          "name": "PairCreated",
+          "type": "event"
+        }
+      },
+      "links": {},
+      "address": "0xF129c1F50FbF153AB887D828EAd4Daa5f8B4D935",
+      "transactionHash": "0xd1ca0fb19ebea3bb0c9d9a776a1e4182499e2ace775b0818c9ec7ca9c1930983"
     }
   },
-  "schemaVersion": "3.4.3",
-  "updatedAt": "2022-05-12T05:12:39.257Z",
+  "schemaVersion": "3.4.5",
+  "updatedAt": "2022-05-14T08:30:39.733Z",
   "networkType": "ethereum",
   "devdoc": {
     "methods": {}
