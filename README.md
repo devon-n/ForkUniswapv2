@@ -1,6 +1,6 @@
 # Uniswap V2 Fork
 
-This project forks uniswaps core and migrations.
+This project forks uniswaps core, periphery and a migrator for the liquidity pool tokens.
 
 ## Installation
 
